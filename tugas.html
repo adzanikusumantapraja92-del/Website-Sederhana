@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Halaman Tugas</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue: #2e86de;
+      --blue-dark: #1b65b0;
+      --gray-bg: #f5f7fa;
+      --card-shadow: rgba(0, 0, 0, 0.05) 0px 2px 10px;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 40px 24px;
+      background-color: var(--gray-bg);
+      color: #111;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--blue);
+    }
+    .task-list {
+      list-style: none;
+      padding: 0;
+    }
+    .task-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      border-radius: 16px;
+      background-color: #fff;
+      margin-bottom: 12px;
+      position: relative;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s;
+    }
+    .task-item:hover {
+      transform: scale(1.01);
+    }
+    .task-item.Tinggi {
+      border-left: 6px solid #ff4d4d;
+    }
+    .task-item.Normal {
+      border-left: 6px solid #2e86de;
+    }
+    .task-item.Rendah {
+      border-left: 6px solid #2ecc71;
+    }
+    .task-item.due-soon::before,
+    .task-item.overdue::before {
+      content: "🚨";
+      font-size: 1.4em;
+      position: absolute;
+      left: -28px;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+    .task-item.done span {
+      text-decoration: line-through;
+      color: gray;
+    }
+    .task-actions button {
+      margin-left: 8px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--blue);
+      font-size: 1.3em;
+    }
+    .task-actions button:hover {
+      color: var(--blue-dark);
+    }
+    .add-task {
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: #fff;
+      padding: 16px;
+      border-radius: 16px;
+      box-shadow: var(--card-shadow);
+    }
+    .add-task input, .add-task input[type="date"], .add-task input[type="url"], .add-task select {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      flex: 1;
+      min-width: 140px;
+    }
+    .add-task button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      background-color: var(--blue);
+      color: white;
+      cursor: pointer;
+    }
+    .add-task button:hover {
+      background-color: var(--blue-dark);
+    }
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 16px;
+      background-color: var(--blue);
+      color: white;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .back-button:hover {
+      background-color: var(--blue-dark);
+    }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-button">⬅️ Kembali ke Dashboard</a>
+  <h1>Daftar Tugas</h1>
+
+  <div class="add-task">
+    <input type="text" id="taskInput" placeholder="Tugas baru..." />
+    <input type="date" id="dueDate" />
+    <select id="priority">
+      <option value="Normal">Normal</option>
+      <option value="Tinggi">Tinggi</option>
+      <option value="Rendah">Rendah</option>
+    </select>
+    <input type="url" id="taskLink" placeholder="(Opsional) Link tugas..." />
+    <button id="addBtn">Tambah</button>
+  </div>
+
+  <ul class="task-list" id="taskList"></ul>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem("tugas")) || [];
+
+    function saveTasks() {
+      localStorage.setItem("tugas", JSON.stringify(tasks));
+    }
+
+    function renderTasks() {
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+      const now = new Date();
+      tasks.forEach((task, index) => {
+        const item = document.createElement("li");
+        item.className = `task-item ${task.priority || "Normal"}` + (task.done ? " done" : "");
+
+        if (!task.done && task.due) {
+          const dueDate = new Date(task.due);
+          const timeDiff = dueDate - now;
+          const oneDay = 24 * 60 * 60 * 1000;
+
+          if (timeDiff < 0) {
+            item.classList.add("overdue");
+          } else if (timeDiff <= oneDay) {
+            item.classList.add("due-soon");
+          }
+        }
+
+        const nameSpan = document.createElement("span");
+        nameSpan.innerHTML = `${task.name} <small>(Jatuh tempo: ${task.due || "-"}, Prioritas: ${task.priority || "Normal"})</small>`;
+
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+
+        if (task.link) {
+          const linkBtn = document.createElement("button");
+          linkBtn.innerHTML = '🔗';
+          linkBtn.title = "Buka Link";
+          linkBtn.onclick = () => window.open(task.link, "_blank");
+          actions.appendChild(linkBtn);
+        }
+
+        const toggleBtn = document.createElement("button");
+        toggleBtn.innerHTML = task.done ? '↩️' : '✅';
+        toggleBtn.onclick = () => toggleDone(index);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.onclick = () => deleteTask(index);
+
+        actions.appendChild(toggleBtn);
+        actions.appendChild(deleteBtn);
+
+        item.appendChild(nameSpan);
+        item.appendChild(actions);
+        list.appendChild(item);
+      });
+    }
+
+    function addTask() {
+      const name = document.getElementById("taskInput").value.trim();
+      const due = document.getElementById("dueDate").value;
+      const priority = document.getElementById("priority").value;
+      const link = document.getElementById("taskLink").value.trim();
+      if (name) {
+        tasks.push({ name, due, priority, link, done: false });
+        document.getElementById("taskInput").value = "";
+        document.getElementById("dueDate").value = "";
+        document.getElementById("priority").value = "Normal";
+        document.getElementById("taskLink").value = "";
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    function toggleDone(index) {
+      tasks[index].done = !tasks[index].done;
+      saveTasks();
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      if (confirm("Yakin ingin menghapus tugas ini?")) {
+        tasks.splice(index, 1);
+        saveTasks();
+        renderTasks();
+      }
+    }
+
+    document.getElementById("addBtn").addEventListener("click", addTask);
+    document.getElementById("taskInput").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") addTask();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>

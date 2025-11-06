@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panduan & SOP</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+    }
+    .folder {
+      cursor: pointer;
+      padding: 20px;
+      margin: 10px;
+      border-radius: 15px;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+    .folder:hover {
+      box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+    }
+    .modal-title {
+      font-weight: 600;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .step-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      z-index: 1050;
+      border-radius: 15px;
+      max-width: 600px;
+      width: 90%;
+    }
+    .step-popup h5 {
+      margin-bottom: 15px;
+    }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.4);
+      z-index: 1040;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-4">
+    <a href="dashboard.html" class="btn btn-primary mb-3"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    <h3 class="mb-4">Panduan & SOP</h3>
+
+    <div id="folder-list" class="row mb-4">
+      <!-- Folder akan ditampilkan di sini -->
+    </div>
+
+    <button class="btn btn-success" onclick="showModalPanduan()"><i class="fas fa-plus"></i> Tambah Panduan</button>
+
+    <!-- Modal Tambah Panduan -->
+    <div class="modal fade" id="panduanModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Tambah Panduan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label>Nama Folder (misal: SOP, Iklan)</label>
+              <input type="text" id="folderInput" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label>Judul Panduan</label>
+              <input type="text" id="judulInput" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label>Langkah-langkah (masukkan satu per satu)</label>
+              <div id="langkahList"></div>
+              <button type="button" class="btn btn-outline-secondary btn-sm mt-2" onclick="tambahLangkah()">+ Tambah Langkah</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-primary" onclick="simpanPanduan()">Simpan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup Langkah -->
+    <div id="popup" class="step-popup d-none">
+      <h5 id="popupJudul"></h5>
+      <p id="popupLangkah"></p>
+      <div class="d-flex justify-content-between">
+        <button class="btn btn-secondary" onclick="prevStep()">Sebelumnya</button>
+        <button class="btn btn-primary" onclick="nextStep()">Berikutnya</button>
+      </div>
+    </div>
+    <div id="overlay" class="overlay d-none" onclick="closePopup()"></div>
+  </div>
+
+  <script>
+    let dataPanduan = JSON.parse(localStorage.getItem('panduanData') || '{}');
+    let langkahIndex = 0;
+    let currentSteps = [];
+
+    function showModalPanduan() {
+      document.getElementById('folderInput').value = '';
+      document.getElementById('judulInput').value = '';
+      document.getElementById('langkahList').innerHTML = '';
+      tambahLangkah();
+      new bootstrap.Modal(document.getElementById('panduanModal')).show();
+    }
+
+    function tambahLangkah() {
+      const id = Date.now();
+      const div = document.createElement('div');
+      div.className = 'mb-2';
+      div.innerHTML = `
+        <input type="text" class="form-control mb-1" placeholder="Langkah..." />
+        <input type="text" class="form-control mb-1" placeholder="Link (opsional)" />
+        <input type="file" accept="image/*" class="form-control mb-1" onchange="handleImageUpload(this)" />
+    <input type="hidden" class="image-data" />
+      `;
+      document.getElementById('langkahList').appendChild(div);
+    }
+
+    function simpanPanduan() {
+      const folder = document.getElementById('folderInput').value.trim();
+      const judul = document.getElementById('judulInput').value.trim();
+      const langkahInputs = document.querySelectorAll('#langkahList > div');
+      const langkah = [];
+
+      langkahInputs.forEach(div => {
+        const input = div.querySelectorAll('input');
+        if (input[0].value) {
+          langkah.push({
+            text: input[0].value,
+            link: input[1].value,
+            img: input[2].value
+          });
+        }
+      });
+
+      if (!dataPanduan[folder]) dataPanduan[folder] = [];
+      dataPanduan[folder].push({ judul, langkah });
+
+      localStorage.setItem('panduanData', JSON.stringify(dataPanduan));
+      location.reload();
+    }
+
+    function tampilkanFolder() {
+      const container = document.getElementById('folder-list');
+      container.innerHTML = '';
+      Object.keys(dataPanduan).forEach(folder => {
+        const col = document.createElement('div');
+        col.className = 'col-md-3';
+        col.innerHTML = `
+          <div class="folder text-center" onclick="tampilkanJudul('${folder}')">
+            <i class="fas fa-folder fa-2x text-warning mb-2"></i>
+            <div><strong>${folder}</strong></div>
+          </div>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    function tampilkanJudul(folder) {
+      const container = document.getElementById('folder-list');
+      container.innerHTML = '';
+      dataPanduan[folder].forEach((item, i) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-3';
+        col.innerHTML = `
+          <div class="folder text-center" onclick="bukaPanduan('${folder}', ${i})">
+            <i class="fas fa-file-alt fa-2x text-primary mb-2"></i>
+            <div>${item.judul}</div>
+          </div>
+        `;
+        container.appendChild(col);
+      });
+    }
+
+    function bukaPanduan(folder, index) {
+      langkahIndex = 0;
+      currentSteps = dataPanduan[folder][index].langkah;
+      tampilkanLangkah();
+    }
+
+    function tampilkanLangkah() {
+      const langkah = currentSteps[langkahIndex];
+      document.getElementById('popupJudul').innerText = `Langkah ${langkahIndex + 1}`;
+
+      let html = `<strong>${langkah.text}</strong>`;
+      if (langkah.link) html += `<br><a href="${langkah.link}" target="_blank">${langkah.link}</a>`;
+      if (langkah.img) html += `<br><img src="${langkah.img}" alt="gambar" class="img-fluid mt-2 rounded">`;
+
+      document.getElementById('popupLangkah').innerHTML = html;
+      document.getElementById('popup').classList.remove('d-none');
+      document.getElementById('overlay').classList.remove('d-none');
+    }
+
+    function nextStep() {
+      if (langkahIndex < currentSteps.length - 1) {
+        langkahIndex++;
+        tampilkanLangkah();
+      }
+    }
+
+    function prevStep() {
+      if (langkahIndex > 0) {
+        langkahIndex--;
+        tampilkanLangkah();
+      }
+    }
+
+    function closePopup() {
+      document.getElementById('popup').classList.add('d-none');
+      document.getElementById('overlay').classList.add('d-none');
+    }
+
+    tampilkanFolder();
+  </script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
