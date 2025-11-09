@@ -10,6 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
   <style>
+  
     :root {
       --bg-main: #f5f7fa;
       --bg-sidebar: #2e86de;
@@ -252,9 +253,66 @@
       margin-right: 6px;
       vertical-align: middle;
     }
+	/* Tombol buka/tutup sidebar */
+.toggle-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background-color: var(--accent);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+ z-index: 1200;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #1d5cb5;
+}
+
+/* Sidebar animasi buka/tutup */
+.sidebar {
+  width: 220px;
+  background-color: var(--bg-sidebar);
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  transform: translateX(0);
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+
+.sidebar.closed {
+  transform: translateX(-100%);
+}
+
+/* Konten utama menyesuaikan */
+.sidebar.closed ~ .main {
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+}
+
+.main {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  position: relative;
+  margin-left: 220px;
+  transition: margin-left 0.3s ease;
+}
+
   </style>
 </head>
 <body>
+<button id="toggleSidebar" class="toggle-btn">☰</button>
   <div class="sidebar">
     <div>
       <h2>📘 Dashboard</h2>
@@ -506,7 +564,13 @@ if ('serviceWorker' in navigator) {
 }
 
   </script>
+  <script>
+  document.getElementById("toggleSidebar").addEventListener("click", () => {
+    document.querySelector(".sidebar").classList.toggle("closed");
+  });
   
+</script>
+
 </body><!-- POPUP LINK -->
 <div id="linkPopup" class="popup-overlay" style="display:none;">
   <div class="popup-content">
