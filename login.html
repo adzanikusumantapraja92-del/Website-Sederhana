@@ -75,6 +75,7 @@
   <script>
     // Akun-akun yang tersedia
     const users = [
+      { username: 'owner', password: 'owner123', role: 'manager' },
       { username: 'manager1', password: '12345', role: 'manager' },
       { username: 'admin', password: 'admin123', role: 'admin' }
     ];
@@ -89,11 +90,26 @@
       if (found) {
         // Simpan role ke localStorage
         localStorage.setItem('loggedUser', JSON.stringify(found));
-        window.location.href = "index.html"; // arahkan ke index.html (bukan dashboard.html)
+        
+     switch (found.role) {
+      case "owner":
+        window.location.href = "dashboard_owner.html";
+        break;
+      case "manager":
+        window.location.href = "dashboard_manager.html";
+        break;
+      case "admin":
+        window.location.href = "index.html";
+        break;
+      default:
+        window.location.href = "index.html";
       } else {
-        errorMsg.textContent = "Username atau Password salah!";
-      }
+    errorMsg.textContent = "Username atau Password salah!";  
     }
+   }
+   
+    
   </script>
 </body>
 </html>
+
