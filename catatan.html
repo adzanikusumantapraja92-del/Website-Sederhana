@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catatan | Dashboard Admin</title>
+  
+  <div class="back">
+  <button onclick="window.location.href='index.html'">← Kembali</button>
+</div>
+
+<div class="main-content">
+  <button id="manageBtn" class="manage-btn">⚙️ Manajemen Kategori</button>
+
+  <div id="categoryManager" class="category-manager hidden">
+   <h3>Daftar Kategori</h3>
+   <div class="category-list"></div>
+  </div>
+
+
+  <style>
+    :root {
+      --primary-color: #3a6ff7;
+      --bg-color: #f8f9fb;
+      --card-bg: #fff;
+      --border-color: #ddd;
+      --text-color: #333;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      height: 100vh;
+    }
+	
+	.back {
+     position: fixed;
+     top: 15px;
+     left: 15px;
+     z-index: 1000;
+    }
+
+    .back button {
+     display: flex;
+     align-items: center;
+     gap: 6px;
+     background: #3a6ff7;
+     color: white;
+     border: none;
+     border-radius: 8px;
+     padding: 8px 14px;
+     cursor: pointer;
+     font-size: 14px;
+     font-weight: 500;
+     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+     transition: all 0.25s ease;
+    }
+
+   .back button:hover {
+     background: #3458cc;
+     transform: translateY(-1px);
+    }
+    .manage-btn {
+     background: #3a6ff7;
+     color: white;
+     border: none;
+     border-radius: 8px;
+     padding: 10px 16px;
+     cursor: pointer;
+     font-weight: 600;
+     margin-bottom: 15px;
+     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+     transition: background 0.25s ease;
+    }
+
+    .manage-btn {
+     background: #3a6ff7;
+     color: #fff;
+     border: none;
+     border-radius: 8px;
+     padding: 10px 16px;
+     cursor: pointer;
+     font-weight: 600;
+     margin-bottom: 15px;
+     box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+     transition: background 0.25s ease;
+    }
+
+   .manage-btn:hover {
+     background: #3458cc;
+    }
+
+   .category-manager {
+     background: white;
+     border-radius: 10px;
+     padding: 20px;
+     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+     animation: fadeIn 0.3s ease;
+    }
+
+   .hidden {
+     display: none;
+    }
+
+   .category-item {
+     background: #f8f9fb;
+     padding: 10px 14px;
+     border-radius: 8px;
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+     margin-bottom: 8px;
+     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+   .delete-btn {
+     background: #ff4d4d;
+     color: white;
+     border: none;
+     border-radius: 6px;
+     cursor: pointer;
+     padding: 6px 10px;
+     transition: all 0.2s;
+    }
+
+   .delete-btn:hover {
+     background: #e63e3e;
+    }
+
+   @keyframes fadeIn {
+     from { opacity: 0; transform: scale(0.95); }
+     to { opacity: 1; transform: scale(1); }
+    }
+
+
+    /* === MAIN CONTENT === */
+    .main-content {
+      flex: 1;
+      padding: 50px;
+      overflow-y: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    header h1 {
+      font-size: 22px;
+    }
+
+    button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #3458cc;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    select, input, textarea {
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* === NOTE GRID === */
+    .notes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 15px;
+    }
+
+    .note-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: 0.3s;
+    }
+
+    .note-card:hover {
+      transform: scale(1.02);
+    }
+
+    .note-card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      color: var(--primary-color);
+    }
+
+    .note-card p {
+      flex: 1;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .note-card small {
+      color: gray;
+      font-size: 12px;
+    }
+
+    .note-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .note-actions button {
+      background: #eee;
+      color: #333;
+      border-radius: 6px;
+      padding: 5px 8px;
+    }
+
+    .note-actions button:hover {
+      background: #ddd;
+    }
+	
+	.note-actions {
+     display: flex;
+     gap: 6px;
+     margin-top: 8px;
+    }
+
+    .note-actions button {
+     background: #e9e9e9;
+     border: none;
+     border-radius: 6px;
+     padding: 6px 10px;
+     cursor: pointer;
+     transition: 0.2s;
+    }
+
+    .note-actions button:hover {
+     background: #d0d0d0;
+    }
+
+
+    /* === MODAL === */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .modal.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      width: 400px;
+      max-width: 90%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    .modal-content h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="main-content">
+    <header>
+      <h1>📝 Manajemen Catatan</h1>
+      <button id="addNoteBtn">+ Tambah Catatan</button>
+    </header>
+
+    <div class="filter-bar">
+      <select id="categoryFilter">
+        <option value="all">Semua Kategori</option>
+      </select>
+      <button id="addCategoryBtn">+ Tambah Kategori</button>
+    </div>
+
+    <div id="notesContainer" class="notes-container"></div>
+  </div>
+
+  <!-- Modal Catatan -->
+  <div id="noteModal" class="modal hidden">
+    <div class="modal-content">
+      <h2 id="modalTitle">Tambah Catatan</h2>
+      <input type="text" id="noteTitle" placeholder="Judul Catatan">
+      <textarea id="noteContent" placeholder="Isi catatan..." rows="5"></textarea>
+      <select id="noteCategory"></select>
+      <div class="modal-actions">
+        <button id="saveNoteBtn">Simpan</button>
+        <button id="cancelNoteBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Kategori -->
+  <div id="categoryModal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Tambah Kategori</h2>
+      <input type="text" id="newCategoryName" placeholder="Nama kategori...">
+      <div class="modal-actions">
+        <button id="saveCategoryBtn">Simpan</button>
+        <button id="cancelCategoryBtn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== INISIALISASI ======
+    const notesContainer = document.getElementById("notesContainer");
+    const addNoteBtn = document.getElementById("addNoteBtn");
+    const addCategoryBtn = document.getElementById("addCategoryBtn");
+    const categoryFilter = document.getElementById("categoryFilter");
+    const noteModal = document.getElementById("noteModal");
+    const categoryModal = document.getElementById("categoryModal");
+    const saveNoteBtn = document.getElementById("saveNoteBtn");
+    const cancelNoteBtn = document.getElementById("cancelNoteBtn");
+    const saveCategoryBtn = document.getElementById("saveCategoryBtn");
+    const cancelCategoryBtn = document.getElementById("cancelCategoryBtn");
+
+    const noteTitle = document.getElementById("noteTitle");
+    const noteContent = document.getElementById("noteContent");
+    const noteCategory = document.getElementById("noteCategory");
+    const newCategoryName = document.getElementById("newCategoryName");
+
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let categories = JSON.parse(localStorage.getItem("categories")) || ["Umum"];
+    let editIndex = null;
+
+    // ====== RENDER KATEGORI ======
+    function renderCategories() {
+      categoryFilter.innerHTML = `<option value="all">Semua Kategori</option>`;
+      noteCategory.innerHTML = "";
+      categories.forEach(cat => {
+        const option = `<option value="${cat}">${cat}</option>`;
+        categoryFilter.innerHTML += option;
+        noteCategory.innerHTML += option;
+      });
+    }
+
+    // ====== RENDER CATATAN ======
+    function renderNotes() {
+      const filter = categoryFilter.value;
+      notesContainer.innerHTML = "";
+      const filteredNotes = filter === "all" ? notes : notes.filter(n => n.category === filter);
+      filteredNotes.forEach((note, i) => {
+        const div = document.createElement("div");
+        div.classList.add("note-card");
+        div.innerHTML = `
+          <h3>${note.title}</h3>
+          <p>${note.content}</p>
+          <small><i>${note.category}</i></small>
+          <div class="note-actions">
+		     <button onclick="copyNote(${i})">📋</button>
+             <button onclick="editNote(${i})">✏️</button>
+             <button onclick="deleteNote(${i})">🗑️</button>
+          </div>
+        `;
+        notesContainer.appendChild(div);
+      });
+    }
+
+    renderCategories();
+    renderNotes();
+
+    // ====== EVENT ======
+    addNoteBtn.onclick = () => {
+      editIndex = null;
+      noteTitle.value = "";
+      noteContent.value = "";
+      noteModal.classList.remove("hidden");
+    };
+
+    saveNoteBtn.onclick = () => {
+      const newNote = {
+        title: noteTitle.value.trim(),
+        content: noteContent.value.trim(),
+        category: noteCategory.value
+      };
+      if (!newNote.title) return alert("Judul tidak boleh kosong");
+      if (editIndex !== null) notes[editIndex] = newNote;
+      else notes.push(newNote);
+      localStorage.setItem("notes", JSON.stringify(notes));
+      noteModal.classList.add("hidden");
+      renderNotes();
+    };
+
+    cancelNoteBtn.onclick = () => noteModal.classList.add("hidden");
+
+    addCategoryBtn.onclick = () => categoryModal.classList.remove("hidden");
+    saveCategoryBtn.onclick = () => {
+      const name = newCategoryName.value.trim();
+      if (name && !categories.includes(name)) {
+        categories.push(name);
+        localStorage.setItem("categories", JSON.stringify(categories));
+        renderCategories();
+      }
+      categoryModal.classList.add("hidden");
+      newCategoryName.value = "";
+    };
+
+    cancelCategoryBtn.onclick = () => categoryModal.classList.add("hidden");
+
+    categoryFilter.onchange = renderNotes;
+
+    // ====== EDIT & HAPUS ======
+    window.editNote = (index) => {
+      editIndex = index;
+      const note = notes[index];
+      noteTitle.value = note.title;
+      noteContent.value = note.content;
+      noteCategory.value = note.category;
+      noteModal.classList.remove("hidden");
+    };
+
+    window.deleteNote = (index) => {
+      if (confirm("Yakin ingin menghapus catatan ini?")) {
+        notes.splice(index, 1);
+        localStorage.setItem("notes", JSON.stringify(notes));
+        renderNotes();
+      }
+    };
+	
+	window.copyNote = (index) => {
+     const note = notes[index];
+     const textToCopy = `${note.title}\n\n${note.content}`;
+     navigator.clipboard.writeText(textToCopy)
+     .then(() => alert("Catatan berhasil disalin ke clipboard!"))
+     .catch(() => alert("Gagal menyalin catatan."));
+    };
+
+
+    // Logout dummy
+    function logout() {
+      alert("Logout berhasil (simulasi).");
+    }
+  </script>
+  
+ <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const manageBtn = document.getElementById('manageBtn');
+  const managerDiv = document.getElementById('categoryManager');
+  const categoryList = document.querySelector('.category-list');
+
+  let categories = JSON.parse(localStorage.getItem('categories')) || [];
+
+  // Tampilkan / sembunyikan daftar kategori
+  manageBtn.addEventListener('click', () => {
+    managerDiv.classList.toggle('hidden');
+    if (!managerDiv.classList.contains('hidden')) {
+      renderCategoryList();
+    }
+  });
+
+  // Render daftar kategori
+  function renderCategoryList() {
+    categoryList.innerHTML = '';
+    if (categories.length === 0) {
+      categoryList.innerHTML = '<p>Tidak ada kategori.</p>';
+      return;
+    }
+
+    categories.forEach((cat, index) => {
+      const div = document.createElement('div');
+      div.className = 'category-item';
+      div.innerHTML = `
+        <span>${cat}</span>
+        <button class="delete-btn" onclick="deleteCategory(${index})">Hapus</button>
+      `;
+      categoryList.appendChild(div);
+    });
+  }
+
+  // Hapus kategori
+  window.deleteCategory = function(index) {
+    if (confirm('Yakin ingin menghapus kategori ini?')) {
+      categories.splice(index, 1);
+      localStorage.setItem('categories', JSON.stringify(categories));
+      renderCategoryList();
+    }
+  };
+});
+</script>
+
+
+</body>
+</html>
