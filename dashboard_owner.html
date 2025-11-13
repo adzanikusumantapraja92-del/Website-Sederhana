@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Owner</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+    body {
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+      background-color: #f4f6f9;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 240px;
+      background-color: #2c3e50;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar h2 {
+      text-align: center;
+      padding: 20px;
+      background-color: #1a252f;
+      margin: 0;
+    }
+    .sidebar nav a {
+      display: block;
+      padding: 12px 20px;
+      color: white;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .sidebar nav a:hover {
+      background-color: #34495e;
+    }
+    .logout {
+      text-align: center;
+      padding: 15px;
+      background-color: #1a252f;
+      cursor: pointer;
+    }
+    .logout:hover { background-color: #34495e; }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex-grow: 1;
+      padding: 20px;
+      background-color: #f4f6f9;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 15px 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #2c3e50;
+    }
+
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    .btn-primary:hover { background-color: #2980b9; }
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    .btn-danger:hover { background-color: #c0392b; }
+    .btn-warning {
+      background-color: #f39c12;
+      color: white;
+    }
+    .btn-warning:hover { background-color: #e67e22; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    th {
+      background-color: #ecf0f1;
+      font-weight: 600;
+    }
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    /* MODAL */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    .modal-actions {
+      text-align: right;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div>
+      <h2>OWNER PANEL</h2>
+      <nav>
+        <a href="#" id="menuManagers"><i class="bi bi-people-fill"></i> Daftar Manager</a>
+        <a href="#" id="menuAddManager"><i class="bi bi-person-plus"></i> Tambah Manager</a>
+        <a href="#" id="menuPreview"><i class="bi bi-eye"></i> Lihat Tampilan Manager</a>
+      </nav>
+    </div>
+    <div class="logout">🚪 Logout</div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <header>
+      <h1>📋 Daftar Manager</h1>
+      <button class="btn btn-primary" id="openAddModal"><i class="bi bi-plus-circle"></i> Tambah Manager</button>
+    </header>
+
+    <section id="managerListSection">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Manager</th>
+            <th>Username</th>
+            <th>Jumlah Admin</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Suparman</td>
+            <td>manager1</td>
+            <td>3</td>
+            <td>
+              <button class="btn btn-warning"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-primary"><i class="bi bi-eye"></i></button>
+            </td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Rina</td>
+            <td>manager2</td>
+            <td>2</td>
+            <td>
+              <button class="btn btn-warning"><i class="bi bi-pencil-square"></i></button>
+              <button class="btn btn-danger"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-primary"><i class="bi bi-eye"></i></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- MODAL TAMBAH / EDIT MANAGER -->
+  <div class="modal" id="managerModal">
+    <div class="modal-content">
+      <h2 id="modalTitle">Tambah Manager</h2>
+      <input type="text" id="managerName" placeholder="Nama Manager">
+      <input type="text" id="managerUsername" placeholder="Username">
+      <input type="password" id="managerPassword" placeholder="Password">
+      <div class="modal-actions">
+        <button class="btn btn-primary">Simpan</button>
+        <button class="btn btn-danger" id="closeModal">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIHAT ADMIN -->
+  <div class="modal" id="adminModal">
+    <div class="modal-content" style="width:500px;">
+      <h2>Daftar Admin</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>Username</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>Admin A</td><td>adminA</td></tr>
+          <tr><td>2</td><td>Admin B</td><td>adminB</td></tr>
+        </tbody>
+      </table>
+      <div class="modal-actions">
+        <button class="btn btn-danger" id="closeAdminModal">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+<script src="users.js"></script>
+
+<script>
+// === CEK ROLE UNTUK DASHBOARD OWNER ===
+document.addEventListener('DOMContentLoaded', () => {
+  const activeRole = (localStorage.getItem('activeRole') || '').trim().toLowerCase();
+
+  if (activeRole !== 'owner') {
+    alert('Akses ditolak!');
+    window.location.href = 'login.html';
+  }
+});
+
+</script>
+
+<script>
+  // Tombol buka/tutup modal
+  const addBtn = document.getElementById('openAddModal');
+  const modal = document.getElementById('managerModal');
+  const closeModal = document.getElementById('closeModal');
+
+  addBtn.onclick = () => {
+    document.getElementById('modalTitle').textContent = "Tambah Manager";
+    document.getElementById('managerName').value = "";
+    document.getElementById('managerUsername').value = "";
+    document.getElementById('managerPassword').value = "";
+    modal.style.display = 'flex';
+  };
+  closeModal.onclick = () => modal.style.display = 'none';
+
+  // Tutup modal admin
+  const adminModal = document.getElementById('adminModal');
+  const closeAdminModal = document.getElementById('closeAdminModal');
+  closeAdminModal.onclick = () => adminModal.style.display = 'none';
+
+  // 🔹 Ambil list manager dari localStorage
+  let usersData = JSON.parse(localStorage.getItem('users')) || users || [];
+  let managerTableBody = document.querySelector("tbody");
+
+  function renderManagers() {
+    const managers = usersData.filter(u => u.role === "manager");
+    managerTableBody.innerHTML = "";
+
+    managers.forEach((m, i) => {
+      const row = `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${m.nama || '-'}</td>
+          <td>${m.username}</td>
+          <td>${m.adminCount || 0}</td>
+          <td>
+            <button class="btn btn-warning" onclick="editManager('${m.username}')"><i class="bi bi-pencil-square"></i></button>
+            <button class="btn btn-danger" onclick="hapusManager('${m.username}')"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-primary" onclick="lihatAdmin('${m.username}')"><i class="bi bi-eye"></i></button>
+          </td>
+        </tr>`;
+      managerTableBody.innerHTML += row;
+    });
+  }
+
+  // 🔹 Fungsi tambah manager
+  function tambahManager() {
+    const nama = document.getElementById('managerName').value.trim();
+    const username = document.getElementById('managerUsername').value.trim();
+    const password = document.getElementById('managerPassword').value.trim();
+
+    if (!nama || !username || !password) {
+      alert("⚠️ Harap isi semua kolom!");
+      return;
+    }
+
+    // Cek apakah username sudah digunakan
+    if (usersData.some(u => u.username === username)) {
+      alert("❌ Username sudah digunakan!");
+      return;
+    }
+
+    const newUser = { nama, username, password, role: "manager", adminCount: 0 };
+    usersData.push(newUser);
+    localStorage.setItem("users", JSON.stringify(usersData));
+
+    alert("✅ Manager berhasil ditambahkan!");
+    modal.style.display = 'none';
+    renderManagers();
+  }
+
+  // 🔹 Fungsi hapus manager
+  function hapusManager(username) {
+    if (!confirm("Yakin ingin menghapus manager ini?")) return;
+    usersData = usersData.filter(u => u.username !== username);
+    localStorage.setItem("users", JSON.stringify(usersData));
+    renderManagers();
+  }
+
+  // 🔹 Fungsi edit (belum lengkap, hanya alert contoh)
+  function editManager(username) {
+    const manager = usersData.find(u => u.username === username);
+    if (!manager) return;
+    alert(`Edit data manager: ${manager.nama}`);
+  }
+
+function lihatAdmin(username) {
+  const allUsers = JSON.parse(localStorage.getItem('users')) || [];
+  const managers = allUsers.filter(u => u.role === 'manager');
+
+  const manager = managers.find(m => m.username === username);
+  if (!manager) {
+    alert('Manager tidak ditemukan!');
+    return;
+  }
+
+  localStorage.setItem('viewAsManager', JSON.stringify(manager));
+  localStorage.setItem('isViewingManager', 'true');
+
+  window.location.href = 'dashboard_manager.html';
+}
+
+// Ambil data manager yang sedang dibuka
+const activeManagerData = JSON.parse(localStorage.getItem('activeManagerData'));
+if (activeManagerData) {
+  // Misal tampilkan nama manager di header
+  document.getElementById('managerNameHeader').textContent = activeManagerData.nama || activeManagerData.username;
+
+  // Atau gunakan data lain seperti adminCount, dsb
+  console.log(activeManagerData);
+}
+
+
+  // 🔹 Hubungkan tombol simpan di modal ke fungsi tambah
+  document.querySelector(".modal-actions .btn-primary").onclick = tambahManager;
+
+  // 🔹 Render awal daftar manager
+  renderManagers();
+  
+  document.addEventListener('DOMContentLoaded', () => {
+  const activeRole = localStorage.getItem('activeRole');
+  const isViewingManager = localStorage.getItem('isViewingManager') === 'true';
+
+
+  // Jika sedang melihat sebagai manager
+  if (isViewingManager) {
+    const managerData = JSON.parse(localStorage.getItem('viewAsManager'));
+    if (managerData) {
+      document.getElementById('managerNameHeader').textContent =
+        `Melihat dashboard milik: ${managerData.nama || managerData.username}`;
+    }
+  } else {
+    // Login normal sebagai manager
+    const userData = JSON.parse(localStorage.getItem('loggedUser')) || {};
+    document.getElementById('managerNameHeader').textContent =
+      userData.nama || userData.username || 'Manager';
+  }
+});
+
+</script>
+
+
+ 
+
+</body>
+</html>

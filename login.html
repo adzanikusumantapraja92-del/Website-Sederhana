@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Dashboard Kerja</title>
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      justify-content: center;
+      align-items: center;
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      width: 300px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #2e86de;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2e86de;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1b65b0;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: 10px;
+    }
+    .info {
+      font-size: 0.8em;
+      color: #555;
+      margin-top: 20px;
+      background: #eef3fa;
+      padding: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Login Dashboard</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <div class="error" id="errorMsg"></div>
+    <div class="info">
+      <strong>Contoh Akun:</strong><br>
+      👤 <b>manager1</b> / 🔐 <b>12345</b> (role: manager)<br>
+      👤 <b>admin</b> / 🔐 <b>admin123</b> (role: admin)
+    </div>
+  </div>
+
+<script src="users.js"></script>
+
+<script>
+  // Debug helper: tampilkan isi users dari users.js dan localStorage
+  function debugUsers() {
+    console.log(">> users (from users.js):", typeof users !== "undefined" ? users : "(undefined)");
+    const stored = JSON.parse(localStorage.getItem("users")) || [];
+    console.log(">> storedUsers (from localStorage):", stored);
+    const all = [...(typeof users !== "undefined" ? users : []), ...stored];
+    console.log(">> allUsers (merged):", all);
+  }
+
+  // Optional: reset localStorage users (gunakan jika mau membersihkan data yang kacau)
+  function resetStoredUsers() {
+    localStorage.removeItem("users");
+    console.log("localStorage 'users' removed. Refresh halaman.");
+  }
+
+  // Versi login yang lebih robust: trim + lowercase untuk username, dan debug logs
+  function login() {
+  const usernameRaw = document.getElementById('username').value || '';
+  const passwordRaw = document.getElementById('password').value || '';
+  const username = usernameRaw.trim().toLowerCase();
+  const password = passwordRaw.trim();
+  const errorMsg = document.getElementById('errorMsg');
+
+  const defaultUsers = (typeof users !== "undefined") ? users : [];
+  const storedUsers = JSON.parse(localStorage.getItem("users")) || [];
+
+  const normalize = u => ({
+    ...u,
+    __normUsername: (u.username || '').toString().trim().toLowerCase()
+  });
+
+  const allUsers = [...defaultUsers.map(normalize), ...storedUsers.map(normalize)];
+  const found = allUsers.find(u => u.__normUsername === username && (u.password || '') === password);
+
+  if (!found) {
+    errorMsg.textContent = "❌ Username atau Password salah!";
+    console.warn("Login gagal — user tidak ditemukan.");
+    return;
+  }
+
+  // Hapus data lama agar tidak bentrok antar login
+  localStorage.removeItem('activeManagerData');
+
+  // Simpan data user
+  const { __normUsername, ...userToStore } = found;
+  localStorage.setItem("loggedUser", JSON.stringify(userToStore));
+  localStorage.setItem("activeRole", userToStore.role.trim().toLowerCase());
+
+  alert(`✅ Login berhasil sebagai ${userToStore.role?.toUpperCase() || 'USER'}`);
+
+  // Redirect sesuai role
+  if (userToStore.role === "owner") {
+    window.location.href = "dashboard_owner.html";
+  } else if (userToStore.role === "manager") {
+    window.location.href = "dashboard_manager.html";
+  } else if (userToStore.role === "admin") {
+    window.location.href = "index.html";
+  } else {
+    window.location.href = "index.html";
+  }
+}
+
+
+  // Jalankan sekali untuk menunjukkan apa yang tersimpan saat halaman dimuat
+  console.log("--- Login page loaded ---");
+  debugUsers();
+
+  // (opsional) expose helpers ke window agar bisa dipanggil dari Console
+  window.debugUsers = debugUsers;
+  window.resetStoredUsers = resetStoredUsers;
+  window.login = login; // pastikan global untuk onclick
+  localStorage.setItem("activeRole", userToStore.role.trim().toLowerCase());
+localStorage.removeItem('activeManagerData'); // hapus data manager lama
+
+</script>
+
+</body>
+</html>
