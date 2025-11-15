@@ -473,19 +473,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   
-    function downloadData() {
-     const data = {
-      categories: JSON.parse(localStorage.getItem('categories')) || [],
-      links: JSON.parse(localStorage.getItem('links')) || []
-     };
-     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-     const url = URL.createObjectURL(blob);
-     const a = document.createElement('a');
-     a.href = url;
-     a.download = 'data_backup.json';
-     a.click();
-     URL.revokeObjectURL(url);
-    }
+  function downloadData()\ {
+  const data = {
+    categories: JSON.parse(localStorage.getItem("categories")) || [],
+    notes: JSON.parse(localStorage.getItem("notes")) || [],
+    guides: JSON.parse(localStorage.getItem("guides")) || [],
+    tugas: JSON.parse(localStorage.getItem("tugas")) || [],
+    settings: JSON.parse(localStorage.getItem("settings")) || [],
+    activeRole: localStorage.getItem("activeRole") || ""
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `dashboard_backup_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 
   // === 8️⃣ KATEGORI ===
  function renderCategories() {
@@ -496,11 +505,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const card = document.createElement("div");
         card.className = "category-card";
 		card.setAttribute("draggable", true);
-
-
+		
+		card.dataset.id = cat.id
+		
         const title = document.createElement("div");
         title.className = "category-title";
         title.textContent = cat.name;
+		
 
         const actions = document.createElement("div");
         actions.className = "category-actions";
@@ -541,6 +552,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addCategory = function() {
     const name = prompt("Nama kategori:");
     if (name) {
+	
+	 const newCat = {
+    id: Date.now(),   // ID unik
+    name: name,
+    links: []
+  };
       categories.push({ name, links: [] });
       localStorage.setItem(categoriesKey, JSON.stringify(categories));
       renderCategories();
@@ -586,8 +603,8 @@ document.addEventListener('DOMContentLoaded', () => {
       e.target.classList.remove('dragging');
       const newOrder = [];
       document.querySelectorAll('.category-card').forEach(card => {
-        const title = card.querySelector('.category-title').innerText;
-        const category = categories.find(c => c.name === title);
+        const id = parseInt(card.dataset.id);
+        const category = categories.find(c => c.id === id);
         if (category) newOrder.push(category);
       });
       categories = newOrder;
@@ -641,23 +658,31 @@ uploadInput.addEventListener('change', (event) => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = (e) => {
+
+  reader.onload = function(e) {
     try {
-      const jsonData = JSON.parse(e.target.result);
-      if (jsonData.categories && jsonData.links) {
-        localStorage.setItem('categories', JSON.stringify(jsonData.categories));
-        localStorage.setItem('links', JSON.stringify(jsonData.links));
-        alert('✅ Data berhasil diunggah dan disimpan!');
-        location.reload();
-      } else {
-        alert('⚠️ File JSON tidak valid.');
-      }
-    } catch (error) {
-      alert('❌ Gagal membaca file JSON.');
+      const data = JSON.parse(e.target.result);
+
+      // Restore data sesuai isi file
+      if (data.categories) localStorage.setItem("categories", JSON.stringify(data.categories));
+      if (data.notes) localStorage.setItem("notes", JSON.stringify(data.notes));
+      if (data.guides) localStorage.setItem("guides", JSON.stringify(data.guides));
+      if (data.tugas) localStorage.setItem("tugas", JSON.stringify(data.tugas));
+      if (data.settings) localStorage.setItem("settings", JSON.stringify(data.settings));
+      if (data.activeRole) localStorage.setItem("activeRole", data.activeRole);
+
+      alert("✅ Data berhasil dipulihkan! Reload halaman...");
+      location.reload();
+
+    } catch (err) {
+      alert("❌ File JSON tidak valid atau rusak!");
+      console.error(err);
     }
   };
+
   reader.readAsText(file);
 });
 </script>
+
 </body>
 </html>
