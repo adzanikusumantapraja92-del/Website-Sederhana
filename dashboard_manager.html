@@ -375,6 +375,16 @@
     <input id="searchBox" type="text" placeholder="Cari /link..." onkeyup="searchCategories()" />
     <div id="categoriesContainer"></div>
   </div>
+  
+  <!-- POPUP LINK -->
+<div id="linkPopup" class="popup-overlay" style="display:none;">
+  <div class="popup-content">
+    <h3 id="popupTitle"></h3>
+    <ul id="popupLinks"></ul>
+    <button id="addLinkPopupBtn" style="display:none;">+ Tambah Link</button>
+    <button onclick="closePopup()">Tutup</button>
+  </div>
+</div>
 
   <!-- Modal link -->
   <div class="modal-overlay" id="linkModal">
@@ -462,42 +472,71 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.href = "login.html";
     }
   };
+  
+    function downloadData() {
+     const data = {
+      categories: JSON.parse(localStorage.getItem('categories')) || [],
+      links: JSON.parse(localStorage.getItem('links')) || []
+     };
+     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+     const url = URL.createObjectURL(blob);
+     const a = document.createElement('a');
+     a.href = url;
+     a.download = 'data_backup.json';
+     a.click();
+     URL.revokeObjectURL(url);
+    }
 
   // === 8️⃣ KATEGORI ===
-  function renderCategories() {
-    const container = document.getElementById("categoriesContainer");
-    container.innerHTML = '<button class="add-button" onclick="addCategory()">➕ Tambah Kategori</button>';
+ function renderCategories() {
+      const container = document.getElementById("categoriesContainer");
+      container.innerHTML = '<button class="add-button" onclick="addCategory()">➕ Tambah Kategori</button>';
 
-    categories.forEach((cat, index) => {
-      const card = document.createElement("div");
-      card.className = "category-card";
-      card.setAttribute("draggable", true);
+      categories.forEach((cat, index) => {
+        const card = document.createElement("div");
+        card.className = "category-card";
+		card.setAttribute("draggable", true);
 
-      const title = document.createElement("div");
-      title.className = "category-title";
-      title.textContent = cat.name || cat.name;
 
-      const actions = document.createElement("div");
-      actions.className = "category-actions";
+        const title = document.createElement("div");
+        title.className = "category-title";
+        title.textContent = cat.name;
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
-      deleteBtn.onclick = (e) => {
-        e.stopPropagation();
-        if (confirm("Hapus kategori ini?")) {
-          categories.splice(index, 1);
-          localStorage.setItem(categoriesKey, JSON.stringify(categories));
-          renderCategories();
-        }
-      };
-      actions.appendChild(deleteBtn);
+        const actions = document.createElement("div");
+        actions.className = "category-actions";
 
-      card.onclick = () => openLinkModal(index);
-      card.appendChild(title);
-      card.appendChild(actions);
-      container.appendChild(card);
-    });
-  }
+        const addLinkBtn = document.createElement("button");
+        addLinkBtn.innerHTML = '<i class="bi bi-link-45deg"></i>';
+        addLinkBtn.onclick = (e) => {
+          e.stopPropagation();
+          const name = prompt("Nama link:");
+          const url = prompt("URL:");
+          if (name && url && url.startsWith("http")) {
+            categories[index].links.push({ name, url });
+            saveAndRender();
+          } else {
+            alert("Nama dan URL harus valid. URL harus diawali dengan http atau https");
+          }
+        };
+        actions.appendChild(addLinkBtn);
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+        deleteBtn.onclick = (e) => {
+          e.stopPropagation();
+          if (confirm("Yakin ingin menghapus kategori ini?")) {
+            categories.splice(index, 1);
+            saveAndRender();
+          }
+        };
+        actions.appendChild(deleteBtn);
+
+        card.onclick = () => openLinkModal(index);
+        card.appendChild(title);
+        card.appendChild(actions);
+        container.appendChild(card);
+      });
+    }
 
   window.addCategory = function() {
     const name = prompt("Nama kategori:");
@@ -589,17 +628,36 @@ function kembaliKeOwner() {
   window.location.href = 'dashboard_owner.html';
 }
 </script>
+<script>
+const uploadBtn = document.getElementById('uploadBtn');
+const uploadInput = document.getElementById('uploadInput');
 
+uploadBtn.addEventListener('click', () => {
+  uploadInput.click();
+});
 
+uploadInput.addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
 
-</body><!-- POPUP LINK -->
-<div id="linkPopup" class="popup-overlay" style="display:none;">
-  <div class="popup-content">
-    <h3 id="popupTitle"></h3>
-    <ul id="popupLinks"></ul>
-    <button id="addLinkPopupBtn" style="display:none;">+ Tambah Link</button>
-    <button onclick="closePopup()">Tutup</button>
-  </div>
-</div>
-
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const jsonData = JSON.parse(e.target.result);
+      if (jsonData.categories && jsonData.links) {
+        localStorage.setItem('categories', JSON.stringify(jsonData.categories));
+        localStorage.setItem('links', JSON.stringify(jsonData.links));
+        alert('✅ Data berhasil diunggah dan disimpan!');
+        location.reload();
+      } else {
+        alert('⚠️ File JSON tidak valid.');
+      }
+    } catch (error) {
+      alert('❌ Gagal membaca file JSON.');
+    }
+  };
+  reader.readAsText(file);
+});
+</script>
+</body>
 </html>
