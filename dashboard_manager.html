@@ -473,13 +473,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
   
-  function downloadData() {
+ function downloadData() {
   const data = {
     categories: JSON.parse(localStorage.getItem("categories")) || [],
     notes: JSON.parse(localStorage.getItem("notes")) || [],
-    guides: JSON.parse(localStorage.getItem("guides")) || [],
+    panduanData: JSON.parse(localStorage.getItem("panduanData")) || {},
     tugas: JSON.parse(localStorage.getItem("tugas")) || [],
-    settings: JSON.parse(localStorage.getItem("settings")) || [],
+    links: JSON.parse(localStorage.getItem("links")) || [],
     activeRole: localStorage.getItem("activeRole") || ""
   };
 
@@ -494,6 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
   a.click();
   URL.revokeObjectURL(url);
 }
+
 
 
   // === 8️⃣ KATEGORI ===
@@ -663,15 +664,26 @@ uploadInput.addEventListener('change', (event) => {
     try {
       const data = JSON.parse(e.target.result);
 
-      // Restore data sesuai isi file
-      if (data.categories) localStorage.setItem("categories", JSON.stringify(data.categories));
-      if (data.notes) localStorage.setItem("notes", JSON.stringify(data.notes));
-      if (data.guides) localStorage.setItem("guides", JSON.stringify(data.guides));
-      if (data.tugas) localStorage.setItem("tugas", JSON.stringify(data.tugas));
-      if (data.settings) localStorage.setItem("settings", JSON.stringify(data.settings));
-      if (data.activeRole) localStorage.setItem("activeRole", data.activeRole);
+      // Restore data sesuai isi file backup
+      if (data.categories)
+        localStorage.setItem("categories", JSON.stringify(data.categories));
 
-      alert("✅ Data berhasil dipulihkan! Reload halaman...");
+      if (data.notes)
+        localStorage.setItem("notes", JSON.stringify(data.notes));
+
+      if (data.panduanData)   // ✔️ FIX: pakai key panduanData
+        localStorage.setItem("panduanData", JSON.stringify(data.panduanData));
+
+      if (data.tugas)
+        localStorage.setItem("tugas", JSON.stringify(data.tugas));
+
+      if (data.settings)
+        localStorage.setItem("settings", JSON.stringify(data.settings));
+
+      if (data.activeRole)
+        localStorage.setItem("activeRole", data.activeRole);
+
+      alert("✅ Data berhasil dipulihkan! Halaman akan direfresh...");
       location.reload();
 
     } catch (err) {
