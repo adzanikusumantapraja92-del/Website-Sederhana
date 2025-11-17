@@ -480,7 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
     panduanData: JSON.parse(localStorage.getItem("panduanData")) || {},
     tugas: JSON.parse(localStorage.getItem("tugas")) || [],
     links: JSON.parse(localStorage.getItem("links")) || [],
-    activeRole: localStorage.getItem("activeRole") || ""
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], {
@@ -679,9 +678,6 @@ uploadInput.addEventListener('change', (event) => {
 
       if (data.settings)
         localStorage.setItem("settings", JSON.stringify(data.settings));
-
-      if (data.activeRole)
-        localStorage.setItem("activeRole", data.activeRole);
 
       alert("✅ Data berhasil dipulihkan! Halaman akan direfresh...");
       location.reload();
