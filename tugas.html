@@ -126,7 +126,7 @@
   </style>
 </head>
 <body>
-  <a href="index.html" class="back-button">⬅️ Kembali ke Dashboard</a>
+  <a href="dashboard_manager.html" class="back-button">⬅️ Kembali ke Dashboard</a>
   <h1>Daftar Tugas</h1>
 
   <div class="add-task">
@@ -142,12 +142,20 @@
   </div>
 
   <ul class="task-list" id="taskList"></ul>
+  
+  <script>
+function userKey(key) {
+  const user = localStorage.getItem("activeUser") || "guest";
+  const role = localStorage.getItem("activeRole") || "default";
+  return `${key}_${user}_${role}`;
+}
+ </script>
 
   <script>
-    let tasks = JSON.parse(localStorage.getItem("tugas")) || [];
+    let tasks = JSON.parse(localStorage.getItem(userKey("tugas"))) || [];
 
     function saveTasks() {
-      localStorage.setItem("tugas", JSON.stringify(tasks));
+      localStorage.setItem(userKey("tugas"), JSON.stringify(tasks));
     }
 
     function renderTasks() {
