@@ -168,13 +168,15 @@
         <a href="#" id="menuPreview"><i class="bi bi-eye"></i> Lihat Tampilan Manager</a>
       </nav>
     </div>
-    <div class="logout">🚪 Logout</div>
+    <div class="logout" id="logoutBtn">🚪 Logout</div>
   </div>
 
   <!-- MAIN CONTENT -->
   <div class="main-content">
     <header>
-      <h1>📋 Daftar Manager</h1>
+      <h1>📋 Daftar Manager 
+	  <span id="managerNameHeader">Owner</span>
+      </h1>
       <button class="btn btn-primary" id="openAddModal"><i class="bi bi-plus-circle"></i> Tambah Manager</button>
     </header>
 
@@ -254,6 +256,7 @@
     </div>
   </div>
 
+
 <script src="users.js"></script>
 
 <script>
@@ -307,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>
             <button class="btn btn-warning" onclick="editManager('${m.username}')"><i class="bi bi-pencil-square"></i></button>
             <button class="btn btn-danger" onclick="hapusManager('${m.username}')"><i class="bi bi-trash"></i></button>
-            <button class="btn btn-primary" onclick="lihatAdmin('${m.username}')"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-primary" onclick="lihatManager('${m.username}')"><i class="bi bi-eye"></i></button>
           </td>
         </tr>`;
       managerTableBody.innerHTML += row;
@@ -355,63 +358,94 @@ document.addEventListener('DOMContentLoaded', () => {
     alert(`Edit data manager: ${manager.nama}`);
   }
 
-function lihatAdmin(username) {
-  const allUsers = JSON.parse(localStorage.getItem('users')) || [];
-  const managers = allUsers.filter(u => u.role === 'manager');
+    function lihatManager(username) {
+     const users = JSON.parse(localStorage.getItem('users')) || [];
+     const manager = users.find(u => u.username === username);
 
-  const manager = managers.find(m => m.username === username);
-  if (!manager) {
-    alert('Manager tidak ditemukan!');
-    return;
-  }
+     if (!manager) {
+     alert('Manager tidak ditemukan!');
+     return;
+     }
 
-  localStorage.setItem('viewAsManager', JSON.stringify(manager));
-  localStorage.setItem('isViewingManager', 'true');
+           // Simpan data manager yang ingin dibuka
+     localStorage.setItem('activeManagerData', JSON.stringify(manager));
+     localStorage.setItem('isViewingManager', 'true');
 
-  window.location.href = 'dashboard_manager.html';
-}
+           // Catat bahwa role asli user adalah owner   // (JANGAN diubah ke manager!)
+		localStorage.setItem('activeRole', 'owner');
 
-// Ambil data manager yang sedang dibuka
-const activeManagerData = JSON.parse(localStorage.getItem('activeManagerData'));
-if (activeManagerData) {
-  // Misal tampilkan nama manager di header
-  document.getElementById('managerNameHeader').textContent = activeManagerData.nama || activeManagerData.username;
+		window.location.href = 'dashboard_manager.html';
+	}
 
-  // Atau gunakan data lain seperti adminCount, dsb
-  console.log(activeManagerData);
-}
+			// Ambil data manager yang sedang dibuka
+		const activeManagerData = JSON.parse(localStorage.getItem('activeManagerData'));
+			if (activeManagerData) {
+			// Misal tampilkan nama manager di header
+				document.getElementById('managerNameHeader').textContent = activeManagerData.nama || activeManagerData.username;
+
+			// Atau gunakan data lain seperti adminCount, dsb
+				console.log(activeManagerData);
+			}
 
 
-  // 🔹 Hubungkan tombol simpan di modal ke fungsi tambah
-  document.querySelector(".modal-actions .btn-primary").onclick = tambahManager;
+			// 🔹 Hubungkan tombol simpan di modal ke fungsi tambah
+				document.querySelector(".modal-actions .btn-primary").onclick = tambahManager;
 
-  // 🔹 Render awal daftar manager
-  renderManagers();
+			// 🔹 Render awal daftar manager
+				renderManagers();
   
-  document.addEventListener('DOMContentLoaded', () => {
-  const activeRole = localStorage.getItem('activeRole');
-  const isViewingManager = localStorage.getItem('isViewingManager') === 'true';
+			// Jika sedang melihat sebagai manager
+			const isViewingManager = localStorage.getItem('isViewingManager') === 'true';
+			if (isViewingManager) {
+		const managerData = JSON.parse(localStorage.getItem('activeManagerData'));
+			if (managerData) {
+				document.getElementById('managerNameHeader').textContent =
+				`Melihat dashboard milik: ${managerData.nama || managerData.username}`;
+			}
+			} else {
+			// Login normal sebagai manager
+			const userData = JSON.parse(localStorage.getItem('loggedUser')) || {};
+			document.getElementById('managerNameHeader').textContent =
+			userData.nama || userData.username || 'Manager';
+			}
+  
 
 
-  // Jika sedang melihat sebagai manager
-  if (isViewingManager) {
-    const managerData = JSON.parse(localStorage.getItem('viewAsManager'));
-    if (managerData) {
-      document.getElementById('managerNameHeader').textContent =
-        `Melihat dashboard milik: ${managerData.nama || managerData.username}`;
-    }
-  } else {
-    // Login normal sebagai manager
-    const userData = JSON.parse(localStorage.getItem('loggedUser')) || {};
-    document.getElementById('managerNameHeader').textContent =
-      userData.nama || userData.username || 'Manager';
+	function updateManager(perubahan) {
+		let users = JSON.parse(localStorage.getItem('users')) || [];
+		let activeManager = JSON.parse(localStorage.getItem('activeManagerData'));
+
+		// Update object
+		Object.assign(activeManager, perubahan);
+
+		// Update database user
+		users = users.map(u =>
+		u.username === activeManager.username ? activeManager : u
+		);
+
+		// Simpan kembali
+		localStorage.setItem("users", JSON.stringify(users));
+		localStorage.setItem("activeManagerData", JSON.stringify(activeManager));
+
+		alert("Perubahan berhasil disimpan!");
+	}
+	document.addEventListener('DOMContentLoaded', () => {
+  const logoutBtn = document.getElementById('logoutBtn');
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Hapus data login owner
+      localStorage.removeItem('activeRole');
+      localStorage.removeItem('loggedUser');
+      localStorage.removeItem('isViewingManager');
+      localStorage.removeItem('activeManagerData');
+
+      // Redirect ke login
+      window.location.href = 'login.html';
+    });
   }
 });
 
 </script>
-
-
- 
-
 </body>
 </html>
