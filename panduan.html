@@ -58,7 +58,7 @@
 </head>
 <body>
   <div class="container py-4">
-    <a href="index.html" class="btn btn-primary mb-3"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    <a href="dashboard_manager.html" class="btn btn-primary mb-3"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
     <h3 class="mb-4">Panduan & SOP</h3>
 
     <div id="folder-list" class="row mb-4">
@@ -109,11 +109,35 @@
     </div>
     <div id="overlay" class="overlay d-none" onclick="closePopup()"></div>
   </div>
-
-  <script>
-    let dataPanduan = JSON.parse(localStorage.getItem('panduanData') || '{}');
+  
+ <script>
+function userKey(key) {
+  const user = localStorage.getItem("activeUser") || "guest";
+  const role = localStorage.getItem("activeRole") || "default";
+  return `${key}_${user}_${role}`;
+}
+ </script>
+ <script>
+    let dataPanduan = JSON.parse(localStorage.getItem(userKey('panduanData')) || '{}');
     let langkahIndex = 0;
     let currentSteps = [];
+
+
+/* ==========================
+   HANDLE UPLOAD IMAGE BASE64
+========================== */
+function handleImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    input.parentElement.querySelector(".image-data").value = base64;
+  };
+  reader.readAsDataURL(file);
+}
+
 
     function showModalPanduan() {
       document.getElementById('folderInput').value = '';
@@ -156,7 +180,7 @@
       if (!dataPanduan[folder]) dataPanduan[folder] = [];
       dataPanduan[folder].push({ judul, langkah });
 
-      localStorage.setItem('panduanData', JSON.stringify(dataPanduan));
+      localStorage.setItem(userKey('panduanData'), JSON.stringify(dataPanduan));
       location.reload();
     }
 
@@ -235,4 +259,3 @@
 
 </body>
 </html>
-
