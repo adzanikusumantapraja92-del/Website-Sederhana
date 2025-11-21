@@ -120,10 +120,16 @@
 
   // Simpan data user
   const { __normUsername, ...userToStore } = found;
-  localStorage.setItem("loggedUser", JSON.stringify(userToStore));
+  
+  localStorage.setItem("activeUser", userToStore.username.trim().toLowerCase());
   localStorage.setItem("activeRole", userToStore.role.trim().toLowerCase());
+  localStorage.setItem("loggedUser", JSON.stringify(userToStore));
 
   alert(`✅ Login berhasil sebagai ${userToStore.role?.toUpperCase() || 'USER'}`);
+
+// Bersihkan mode owner-lihat-manager
+localStorage.removeItem('isViewingManager');
+localStorage.removeItem('activeManagerData');
 
   // Redirect sesuai role
   if (userToStore.role === "owner") {
@@ -146,8 +152,7 @@
   window.debugUsers = debugUsers;
   window.resetStoredUsers = resetStoredUsers;
   window.login = login; // pastikan global untuk onclick
-  localStorage.setItem("activeRole", userToStore.role.trim().toLowerCase());
-localStorage.removeItem('activeManagerData'); // hapus data manager lama
+
 
 </script>
 
