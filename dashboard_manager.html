@@ -408,48 +408,105 @@
 <script src="users.js"></script>
 
 <script>
+
+const isViewingManager = localStorage.getItem('isViewingManager') === 'true';
+const activeRole = (localStorage.getItem('activeRole') || '').trim().toLowerCase();
+
+function userKey(key) {
+  const role = localStorage.getItem('activeRole');
+  const isViewing = localStorage.getItem('isViewingManager') === 'true';
+  const activeUser = JSON.parse(localStorage.getItem('loggedUser'));
+  const activeManager = JSON.parse(localStorage.getItem('activeManagerData'));
+
+  const identifier = (role === 'owner' && isViewing && activeManager)
+        ? activeManager.username
+        : activeUser.username;
+
+  return `${key}_${identifier}`;
+}
+
+
+const role = localStorage.getItem('activeRole');
+const isViewing = localStorage.getItem('isViewingManager') === 'true';
+const activeUser = JSON.parse(localStorage.getItem('loggedUser'));
+const activeManagerData = JSON.parse(localStorage.getItem('activeManagerData'));
+
+// Manager login normal
+if (role === 'manager') {
+  if (!activeUser) {
+    alert("Akses tidak valid");
+    window.location.href = 'login.html';
+  }
+}
+// Owner sedang melihat manager
+else if (role === 'owner') {
+  if (!isViewing || !activeManagerData) {
+    alert("Akses tidak valid");
+    window.location.href = 'dashboard_owner.html';
+  }
+}
+// Selain itu salah
+else {
+  alert("Akses ditolak!");
+  window.location.href = 'login.html';
+}
+</script>
+
+<script>
 document.addEventListener('DOMContentLoaded', () => {
-  // === 1️⃣ CEK ROLE & MODE LIHAT ===
   const activeRole = (localStorage.getItem('activeRole') || '').trim().toLowerCase();
   const isViewingManager = localStorage.getItem('isViewingManager') === 'true';
-  const btnKembaliOwner = document.getElementById('btnKembaliOwner');
 
-  // Jika bukan manager dan bukan mode "lihat manager" → tolak
-  if (activeRole !== 'manager' && !isViewingManager) {
+  // Owner boleh akses dashboard manager jika sedang melihat manager
+  if (activeRole !== 'manager' && activeRole !== 'owner' && !isViewingManager) {
     alert('Akses ditolak!');
     window.location.href = 'login.html';
     return;
   }
+});
 
   // === 2️⃣ TOMBOL KEMBALI KE OWNER ===
-  if (isViewingManager && activeRole === 'owner') {
-    btnKembaliOwner.style.display = 'block';
-  } else {
-    btnKembaliOwner.style.display = 'none';
-  }
+    const viewing = localStorage.getItem('isViewingManager') === 'true';
 
-  // === 3️⃣ TAMPILKAN DATA MANAGER SESUAI KONDISI ===
-  let userData;
-  let activeManager = '';
+    if (viewing && activeRole === 'owner') {
+     btnKembaliOwner.style.display = 'block';
+     } else {
+     btnKembaliOwner.style.display = 'none';
+    }
 
-  if (isViewingManager) {
-    userData = JSON.parse(localStorage.getItem('viewAsManager'));
-    activeManager = userData?.username || 'manager_temp';
-    document.getElementById('profileName').textContent = `[Lihat] ${activeManager}`;
-  } else {
-    userData = JSON.parse(localStorage.getItem('loggedUser')) || { username: 'manager', role: 'manager' };
-    activeManager = userData.username;
-    document.getElementById('profileName').textContent = activeManager;
-  }
 
-  localStorage.setItem('activeManager', activeManager);
+ // === 3️⃣ TAMPILKAN DATA MANAGER SESUAI KONDISI ===
+let userData;
+let displayName;
+
+if (isViewingManager) {
+  userData = JSON.parse(localStorage.getItem('activeManagerData')) || {};
+   displayName = userData.username || 'manager_temp';
+  document.getElementById('profileName').textContent = `[Lihat] ${displayName}`;
+} else {
+  userData = JSON.parse(localStorage.getItem('loggedUser')) || {};
+  displayName = userData.username || 'manager_temp';
+  document.getElementById('profileName').textContent = displayName;
+}
+
+// ❗ Jangan set string!
+// ❗ Owner-mode = boleh update object
+// ❗ Manager login normal = jangan ubah
+if (isViewingManager) {
+  localStorage.setItem('activeManagerData', JSON.stringify(userData));
+} else {
+  // Manager login normal → jangan set activeManagerData
+}
+
+
+
 
   // === 4️⃣ AMBIL DATA SPESIFIK UNTUK MANAGER INI ===
-  const categoriesKey = `categories_${activeManager}`;
-  let categories = JSON.parse(localStorage.getItem(categoriesKey)) || [];
+const linkCategoriesKey = userKey("linkCategories");
+  let linkCategories = JSON.parse(localStorage.getItem(linkCategoriesKey)) || [];
 
   // === 5️⃣ RENDER DASHBOARD ===
-  renderCategories();
+  renderCategories(linkCategories, "categoriesContainer");
 
   // === 6️⃣ SIDEBAR TOGGLE ===
   document.getElementById("toggleSidebar").addEventListener("click", () => {
@@ -463,104 +520,149 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isViewingManager) {
       localStorage.removeItem('isViewingManager');
-      localStorage.removeItem('viewAsManager');
+      localStorage.removeItem('activeManagerData');
       localStorage.setItem('activeRole', 'owner');
       window.location.href = 'dashboard_owner.html';
     } else {
-      localStorage.removeItem('activeManager');
+      localStorage.removeItem('activeManagerData');
       localStorage.removeItem('activeRole');
       window.location.href = "login.html";
     }
   };
   
- function downloadData() {
-  const data = {
-    categories: JSON.parse(localStorage.getItem("categories")) || [],
-    notes: JSON.parse(localStorage.getItem("notes")) || [],
-    panduanData: JSON.parse(localStorage.getItem("panduanData")) || {},
-    tugas: JSON.parse(localStorage.getItem("tugas")) || [],
-    links: JSON.parse(localStorage.getItem("links")) || [],
-  };
+  function getIdentifier() {
+  const role = localStorage.getItem('activeRole');
+  const isViewing = localStorage.getItem('isViewingManager') === 'true';
+  const activeUser = JSON.parse(localStorage.getItem('loggedUser'));
+  const activeManager = JSON.parse(localStorage.getItem('activeManagerData'));
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json"
+  // Jika owner sedang melihat manager → pakai username manager
+  if (role === 'owner' && isViewing && activeManager) {
+    return activeManager.username;
+  }
+
+  // Selain itu → gunakan username user yang login
+  return activeUser?.username || "unknown";
+}
+
+
+function downloadData() {
+  const activeRole = localStorage.getItem("activeRole") || "default";
+
+  // identifier berdasarkan role
+  const identifier = activeRole;
+
+  // ambil timestamp rapi
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+
+  // daftar key yang ingin di-backup
+  const keys = [
+    "tugas",
+    "panduanData",
+    "categories",
+    "notes"
+  ];
+
+  // Ambil semua data
+  const backup = {};
+
+  keys.forEach(key => {
+    const value = localStorage.getItem(key);
+    backup[key] = value ? JSON.parse(value) : null;
   });
 
+  // simpan semua key yang memakai userKey()
+  Object.keys(localStorage).forEach(key => {
+    if (key.includes("_" + activeRole)) {
+      backup[key] = JSON.parse(localStorage.getItem(key));
+    }
+  });
+
+  // convert ke JSON
+  const json = JSON.stringify(backup, null, 2);
+
+  // buat file downloadable
+  const blob = new Blob([json], { type: "application/json" });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
   a.href = url;
-  a.download = `dashboard_backup_${Date.now()}.json`;
+  a.download = `dashboard_backup_${identifier}_${timestamp}.json`;
   a.click();
+
+  // bersihkan
   URL.revokeObjectURL(url);
 }
 
 
 
-  // === 8️⃣ KATEGORI ===
- function renderCategories() {
-      const container = document.getElementById("categoriesContainer");
-      container.innerHTML = '<button class="add-button" onclick="addCategory()">➕ Tambah Kategori</button>';
+  // === 8️⃣ RENDER KATEGORI ===
+ function renderCategories(catArray, containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '<button class="add-button" onclick="addCategory()">➕ Tambah Kategori</button>';
 
-      categories.forEach((cat, index) => {
-        const card = document.createElement("div");
-        card.className = "category-card";
-		card.setAttribute("draggable", true);
-		
-		card.dataset.id = cat.id
-		
-        const title = document.createElement("div");
-        title.className = "category-title";
-        title.textContent = cat.name;
-		
+  catArray.forEach((cat, index) => {
+    const card = document.createElement("div");
+    card.className = "category-card";
+    card.setAttribute("draggable", true);
+    card.dataset.id = cat.id;
 
-        const actions = document.createElement("div");
-        actions.className = "category-actions";
+    const title = document.createElement("div");
+    title.className = "category-title";
+    title.textContent = cat.name;
 
-        const addLinkBtn = document.createElement("button");
-        addLinkBtn.innerHTML = '<i class="bi bi-link-45deg"></i>';
-        addLinkBtn.onclick = (e) => {
-          e.stopPropagation();
-          const name = prompt("Nama link:");
-          const url = prompt("URL:");
-          if (name && url && url.startsWith("http")) {
-            categories[index].links.push({ name, url });
-            saveAndRender();
-          } else {
-            alert("Nama dan URL harus valid. URL harus diawali dengan http atau https");
-          }
-        };
-        actions.appendChild(addLinkBtn);
+    const actions = document.createElement("div");
+    actions.className = "category-actions";
 
-        const deleteBtn = document.createElement("button");
-        deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
-        deleteBtn.onclick = (e) => {
-          e.stopPropagation();
-          if (confirm("Yakin ingin menghapus kategori ini?")) {
-            categories.splice(index, 1);
-            saveAndRender();
-          }
-        };
-        actions.appendChild(deleteBtn);
+    const addLinkBtn = document.createElement("button");
+    addLinkBtn.innerHTML = '<i class="bi bi-link-45deg"></i>';
+    addLinkBtn.onclick = (e) => {
+      e.stopPropagation();
+      const name = prompt("Nama link:");
+      const url = prompt("URL:");
+      if (name && url && url.startsWith("http")) {
+        const newLink = { name, url };
+        catArray[index].links.push(newLink);
+        localStorage.setItem(linkCategoriesKey, JSON.stringify(catArray));
+        renderCategories(catArray, containerId);
+      } else {
+        alert("Nama dan URL harus valid. URL harus diawali dengan http atau https");
+      }
+    };
+    actions.appendChild(addLinkBtn);
 
-        card.onclick = () => openLinkModal(index);
-        card.appendChild(title);
-        card.appendChild(actions);
-        container.appendChild(card);
-      });
-    }
+    const deleteBtn = document.createElement("button");
+    deleteBtn.innerHTML = '<i class="bi bi-trash"></i>';
+    deleteBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (confirm("Yakin ingin menghapus kategori ini?")) {
+        catArray.splice(index, 1);
+        localStorage.setItem(linkCategoriesKey, JSON.stringify(catArray));
+        renderCategories(catArray, containerId);
+      }
+    };
+    actions.appendChild(deleteBtn);
+
+    card.onclick = () => openLinkModal(index, catArray);
+
+    card.appendChild(title);
+    card.appendChild(actions);
+    container.appendChild(card);
+  });
+}
 
   window.addCategory = function() {
     const name = prompt("Nama kategori:");
-    if (name) {
-	
+    
+	if (name) {
 	 const newCat = {
     id: Date.now(),   // ID unik
     name: name,
     links: []
   };
-      categories.push({ name, links: [] });
-      localStorage.setItem(categoriesKey, JSON.stringify(categories));
-      renderCategories();
+      linkCategories.push(newCat);
+      localStorage.setItem(linkCategoriesKey, JSON.stringify(linkCategories));
+      renderCategories(linkCategories, "categoriesContainer");
     }
   }
 
@@ -569,7 +671,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById("linkModal");
     const list = document.getElementById("linkList");
     list.innerHTML = "";
-    const cat = categories[catIndex];
+    const cat = linkCategories[catIndex];
 
     if (!cat.links) cat.links = [];
 
@@ -607,8 +709,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = categories.find(c => c.id === id);
         if (category) newOrder.push(category);
       });
-      categories = newOrder;
-      localStorage.setItem(categoriesKey, JSON.stringify(categories));
+      linkCategories = newOrder;
+      localStorage.setItem(linkCategoriesKey, JSON.stringify(linkCategories));
     }
   });
 
@@ -635,61 +737,89 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
   }
-});
 
 // === 🧭 FUNGSI KEMBALI KE OWNER (GLOBAL) ===
 function kembaliKeOwner() {
+
+  // Hapus mode melihat manager
   localStorage.removeItem('isViewingManager');
-  localStorage.removeItem('viewAsManager');
+  localStorage.removeItem('activeManagerData');
+
+  // Pastikan role kembali menjadi owner
   localStorage.setItem('activeRole', 'owner');
+
   window.location.href = 'dashboard_owner.html';
 }
 </script>
 <script>
-const uploadBtn = document.getElementById('uploadBtn');
-const uploadInput = document.getElementById('uploadInput');
-
-uploadBtn.addEventListener('click', () => {
-  uploadInput.click();
+document.getElementById("uploadBtn").addEventListener("click", () => {
+  document.getElementById("uploadInput").click();
 });
 
-uploadInput.addEventListener('change', (event) => {
-  const file = event.target.files[0];
+document.getElementById("uploadInput").addEventListener("change", function () {
+  const file = this.files[0];
   if (!file) return;
 
   const reader = new FileReader();
-
-  reader.onload = function(e) {
+  reader.onload = function (e) {
     try {
-      const data = JSON.parse(e.target.result);
+      const imported = JSON.parse(e.target.result);
 
-      // Restore data sesuai isi file backup
-      if (data.categories)
-        localStorage.setItem("categories", JSON.stringify(data.categories));
+      const targetIdentifier = getIdentifier(); // user aktif yang akan menerima data
+      const targetKeys = {
+        linkCategories: `linkCategories_${targetIdentifier}`,
+        categories: `categories_${targetIdentifier}`,
+        notes: `notes_${targetIdentifier}`,
+        tugas: `tugas_${targetIdentifier}`,
+        panduan: `panduanData_${targetIdentifier}`
+      };
 
-      if (data.notes)
-        localStorage.setItem("notes", JSON.stringify(data.notes));
+      // process each imported key
+      Object.keys(imported).forEach(key => {
+        // skip meta
+        if (key === "meta") return;
 
-      if (data.panduanData)   // ✔️ FIX: pakai key panduanData
-        localStorage.setItem("panduanData", JSON.stringify(data.panduanData));
+        const data = imported[key];
 
-      if (data.tugas)
-        localStorage.setItem("tugas", JSON.stringify(data.tugas));
+        // find which type this key is (by prefix)
+        if (key.startsWith("linkCategories_") && Array.isArray(data)) {
+          const old = JSON.parse(localStorage.getItem(targetKeys.linkCategories) || "[]");
+          const merged = [...old, ...data];
+          localStorage.setItem(targetKeys.linkCategories, JSON.stringify(merged));
+        } else if (key.startsWith("categories_") && Array.isArray(data)) {
+          const old = JSON.parse(localStorage.getItem(targetKeys.categories) || "[]");
+          const merged = [...old, ...data];
+          localStorage.setItem(targetKeys.categories, JSON.stringify(merged));
+        } else if (key.startsWith("notes_") && Array.isArray(data)) {
+          const old = JSON.parse(localStorage.getItem(targetKeys.notes) || "[]");
+          const merged = [...old, ...data];
+          localStorage.setItem(targetKeys.notes, JSON.stringify(merged));
+        } else if (key.startsWith("tugas_") && Array.isArray(data)) {
+          const old = JSON.parse(localStorage.getItem(targetKeys.tugas) || "[]");
+          const merged = [...old, ...data];
+          localStorage.setItem(targetKeys.tugas, JSON.stringify(merged));
+        } else if (key.startsWith("panduanData_") && typeof data === "object") {
+          const old = JSON.parse(localStorage.getItem(targetKeys.panduan) || "{}");
+          const mergedObj = { ...old };
+          Object.keys(data).forEach(folder => {
+            if (!Array.isArray(mergedObj[folder])) mergedObj[folder] = [];
+            mergedObj[folder] = [...mergedObj[folder], ...data[folder]];
+          });
+          localStorage.setItem(targetKeys.panduan, JSON.stringify(mergedObj));
+        }
+        // else: ignore unknown keys
+      });
 
-      if (data.settings)
-        localStorage.setItem("settings", JSON.stringify(data.settings));
-
-      alert("✅ Data berhasil dipulihkan! Halaman akan direfresh...");
+      alert("✅ Data berhasil ditambahkan (merge).");
       location.reload();
-
     } catch (err) {
-      alert("❌ File JSON tidak valid atau rusak!");
       console.error(err);
+      alert("❌ File JSON tidak valid atau format tidak sesuai.");
     }
   };
-
   reader.readAsText(file);
 });
+
 </script>
 
 </body>
