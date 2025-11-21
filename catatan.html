@@ -6,7 +6,7 @@
   <title>Catatan | Dashboard Admin</title>
   
   <div class="back">
-  <button onclick="window.location.href='index.html'">← Kembali</button>
+  <button onclick="window.location.href='dashboard_manager.html'">← Kembali</button>
 </div>
 
 <div class="main-content">
@@ -315,7 +315,7 @@
       <select id="categoryFilter">
         <option value="all">Semua Kategori</option>
       </select>
-      <button id="addCategoryBtn">+ Tambah Kategori</button>
+      <button id="addCategoryBtn">+ Kategori Catatan </button>
     </div>
 
     <div id="notesContainer" class="notes-container"></div>
@@ -347,6 +347,14 @@
     </div>
   </div>
 
+<script>
+function userKey(key) {
+ const user = localStorage.getItem('activeUser') || "guest";
+  const role = localStorage.getItem('activeRole') || "default";
+    return `${key}_${user}_${role}`;
+}
+</script>
+
   <script>
     // ====== INISIALISASI ======
     const notesContainer = document.getElementById("notesContainer");
@@ -365,8 +373,8 @@
     const noteCategory = document.getElementById("noteCategory");
     const newCategoryName = document.getElementById("newCategoryName");
 
-    let notes = JSON.parse(localStorage.getItem("notes")) || [];
-    let categories = JSON.parse(localStorage.getItem("categories")) || ["Umum"];
+    let notes = JSON.parse(localStorage.getItem(userKey("notes"))) || [];
+    let categories = JSON.parse(localStorage.getItem(userKey("categories"))) || ["Umum"];
     let editIndex = null;
 
     // ====== RENDER KATEGORI ======
@@ -422,7 +430,7 @@
       if (!newNote.title) return alert("Judul tidak boleh kosong");
       if (editIndex !== null) notes[editIndex] = newNote;
       else notes.push(newNote);
-      localStorage.setItem("notes", JSON.stringify(notes));
+      localStorage.setItem(userKey("notes"), JSON.stringify(notes));
       noteModal.classList.add("hidden");
       renderNotes();
     };
@@ -434,7 +442,7 @@
       const name = newCategoryName.value.trim();
       if (name && !categories.includes(name)) {
         categories.push(name);
-        localStorage.setItem("categories", JSON.stringify(categories));
+        localStorage.setItem(userKey("categories"), JSON.stringify(categories));
         renderCategories();
       }
       categoryModal.classList.add("hidden");
@@ -458,7 +466,7 @@
     window.deleteNote = (index) => {
       if (confirm("Yakin ingin menghapus catatan ini?")) {
         notes.splice(index, 1);
-        localStorage.setItem("notes", JSON.stringify(notes));
+        localStorage.setItem(userKey("notes"), JSON.stringify(notes));
         renderNotes();
       }
     };
@@ -484,7 +492,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const managerDiv = document.getElementById('categoryManager');
   const categoryList = document.querySelector('.category-list');
 
-  let categories = JSON.parse(localStorage.getItem('categories')) || [];
+  let categories2 = JSON.parse(localStorage.
+  
+  (userKey('categories'))) || [];
 
   // Tampilkan / sembunyikan daftar kategori
   manageBtn.addEventListener('click', () => {
@@ -517,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.deleteCategory = function(index) {
     if (confirm('Yakin ingin menghapus kategori ini?')) {
       categories.splice(index, 1);
-      localStorage.setItem('categories', JSON.stringify(categories));
+      localStorage.setItem(userKey('categories'), JSON.stringify(categories));
       renderCategoryList();
     }
   };
